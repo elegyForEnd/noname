@@ -29,6 +29,7 @@ export const defaultConfig = {
 	port: 8089,
 	debug: false,
 	dirname: cwd(),
+	maxAge: 3 * 24 * 60 * 60 * 1000,
 };
 
 function createFsHandler(dirname: string) {
@@ -72,7 +73,7 @@ export default function createApp(config: Partial<typeof defaultConfig> = {}) {
 		root: cfg.dirname,
 		prefix: "/",
 		dotfiles: "allow",
-		maxAge: 0,
+		maxAge: cfg.maxAge,
 	});
 
 	// index.html
@@ -216,7 +217,13 @@ export default function createApp(config: Partial<typeof defaultConfig> = {}) {
 	// } else {
 	// 	app.listen(config.port, callback);
 	// }
-	app.listen({ port: cfg.port }, callback);
+	app.listen(
+		{
+			port: cfg.port,
+			host: "0.0.0.0",
+		},
+		callback
+	);
 
 	return app;
 }
