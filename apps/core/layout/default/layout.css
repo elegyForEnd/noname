@@ -1840,6 +1840,44 @@ div.select-all:not(.card):not(.player) {
 	height: 100%;
 	top: 0;
 }
+#window > .dialog.throw-emotion-basket {
+	top: auto;
+	bottom: 72px;
+	width: 154px;
+	z-index: 22;
+}
+.throw-emotion-basket-title {
+	font-family: "xinwei";
+	font-size: 18px;
+	text-align: center;
+}
+.throw-emotion-basket-options,
+.throw-emotion-chat-options {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+}
+.throw-emotion-basket-option,
+.throw-emotion-chat-option {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	box-sizing: border-box;
+	min-width: 62px;
+	padding: 4px 6px;
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.18);
+	box-shadow: rgba(0, 0, 0, 0.28) 0 0 0 1px;
+}
+.throw-emotion-basket-option > img,
+.throw-emotion-chat-option > img {
+	width: 28px;
+	height: 28px;
+	object-fit: contain;
+}
+.throw-emotion-basket-option.active {
+	box-shadow: rgba(255, 190, 80, 0.9) 0 0 0 2px;
+}
 .content > table {
 	width: 100%;
 }

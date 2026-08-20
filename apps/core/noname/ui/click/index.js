@@ -1010,6 +1010,76 @@ export class Click {
 		}
 		return uiintro;
 	}
+	closeThrowEmotionBasket() {
+		const basket = _status.throwEmotionBasket;
+		if (!basket) {
+			return;
+		}
+		ui.window.removeEventListener(basket.eventName, basket.listener, true);
+		basket.dialog.delete();
+		delete _status.throwEmotionBasket;
+	}
+	openThrowEmotionBasket(emotion) {
+		if (!game.online || game.observe || !_status.gameStarted || !game.me || !["flower", "egg"].includes(emotion)) {
+			return;
+		}
+		game.closePopped();
+		ui.click.closeThrowEmotionBasket();
+
+		const dialog = ui.create.dialog("hidden");
+		dialog.classList.add("popped", "static", "throw-emotion-basket");
+		ui.create.div(".throw-emotion-basket-title", "菜篮子", dialog.content);
+		const options = ui.create.div(".throw-emotion-basket-options", dialog.content);
+		const buttons = [];
+		const basket = {
+			emotion,
+			dialog,
+			buttons,
+			eventName: lib.config.touchscreen ? "touchend" : "click",
+			listener: null,
+		};
+		const update = function () {
+			for (const button of buttons) {
+				button.classList.toggle("active", button.link == basket.emotion);
+			}
+		};
+		for (const name of ["flower", "egg"]) {
+			const button = ui.create.div(
+				".throw-emotion-basket-option.pointerdiv",
+				`<img src="${lib.assetURL}image/emotion/throw_emotion/${name}1.png"><span>${get.translation(name)}</span>`,
+				function (e) {
+					basket.emotion = this.link;
+					update();
+					e.stopPropagation();
+				},
+				options
+			);
+			button.link = name;
+			buttons.push(button);
+		}
+		update();
+
+		basket.listener = function (e) {
+			if (dialog.contains(e.target)) {
+				return;
+			}
+			const target = e.target instanceof Element ? e.target.closest(".player") : null;
+			const isTarget = target && target != game.me && (game.players.includes(target) || game.dead.includes(target));
+			e.preventDefault();
+			e.stopPropagation();
+			e.stopImmediatePropagation();
+			if (!isTarget) {
+				ui.click.closeThrowEmotionBasket();
+				return;
+			}
+			game.send("throwEmotion", target, basket.emotion);
+		};
+		_status.throwEmotionBasket = basket;
+		ui.window.appendChild(dialog);
+		dialog.style.height = dialog.content.scrollHeight + "px";
+		dialog.style.left = Math.max(10, (ui.window.offsetWidth - dialog.offsetWidth) / 2) + "px";
+		ui.window.addEventListener(basket.eventName, basket.listener, true);
+	}
 	chat() {
 		ui.system1.classList.add("shown");
 		ui.system2.classList.add("shown");
@@ -1195,6 +1265,23 @@ export class Click {
 		}
 		list1.scrollTop = list1.scrollHeight;
 		uiintro.style.height = uiintro.content.scrollHeight + "px";
+		if (game.online && !game.observe && _status.gameStarted && game.me) {
+			uiintro.add(ui.create.div(".text.center", "菜篮子"));
+			const basketOptions = ui.create.div(".throw-emotion-chat-options");
+			for (const name of ["flower", "egg"]) {
+				const button = ui.create.div(
+					".throw-emotion-chat-option.pointerdiv",
+					`<img src="${lib.assetURL}image/emotion/throw_emotion/${name}1.png"><span>${get.translation(name)}</span>`,
+					function (e) {
+						ui.click.openThrowEmotionBasket(this.link);
+						e.stopPropagation();
+					},
+					basketOptions
+				);
+				button.link = name;
+			}
+			uiintro.add(basketOptions);
+		}
 		var list3 = ui.create.div(".caption");
 		if (get.is.phoneLayout()) {
 			list3.style.height = "110px";

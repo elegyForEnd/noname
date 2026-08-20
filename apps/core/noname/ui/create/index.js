@@ -3105,6 +3105,50 @@ export class Create {
 		});
 		ui.favmode.style.display = "none";
 		ui.favmodelist.update();
+		const isNativeMobileApp = "Capacitor" in window || "cordova" in window || "NonameAndroidBridge" in window || "noname_shijianInterfaces" in window;
+		if (get.is.phoneLayout() && lib.config.touchscreen && !isNativeMobileApp && typeof document.documentElement.requestFullscreen === "function") {
+			const screenOrientation = /** @type {(ScreenOrientation & { lock?: (orientation: string) => Promise<void> }) | undefined} */ (screen.orientation);
+			const fullscreenButton = ui.create.system(
+				"全屏",
+				async function () {
+					try {
+						if (document.fullscreenElement) {
+							await document.exitFullscreen();
+							return;
+						}
+
+						await document.documentElement.requestFullscreen();
+						try {
+							await screenOrientation?.lock?.("landscape");
+						} catch (error) {
+							console.warn("浏览器不支持全屏后自动横屏", error);
+							ui.create.toast("已进入全屏，请手动横屏");
+						}
+					} catch (error) {
+						console.error("进入全屏失败", error);
+						ui.create.toast("无法进入全屏");
+					}
+				},
+				false,
+				true
+			);
+			fullscreenButton.title = "切换全屏";
+			fullscreenButton.setAttribute("aria-label", "切换全屏");
+
+			document.addEventListener("fullscreenchange", function () {
+				const isFullscreen = Boolean(document.fullscreenElement);
+				fullscreenButton.innerHTML = isFullscreen ? "退出" : "全屏";
+				fullscreenButton.title = isFullscreen ? "退出全屏" : "进入全屏";
+				fullscreenButton.setAttribute("aria-label", fullscreenButton.title);
+				if (!isFullscreen) {
+					try {
+						screenOrientation?.unlock();
+					} catch (error) {
+						console.warn("无法解除屏幕方向锁定", error);
+					}
+				}
+			});
+		}
 		// ui.create.div('.menubutton.round','<span>菜单</span>',ui.shortcut,ui.click.config).dataset.position=5;
 
 		if (_status.connectMode) {
